@@ -252,120 +252,119 @@ Jestliže se rozhodnete Janrain nevyužít a použít jednotlivé přihlašovac�
 #### CAPTCHA a reCAPTCHA
 
 ``CAPTCHA``:inxx ``reCAPTCHA``:inxx ``PIL``:inxx
-To prevent spammers and bots registering on your site, you may require a registration CAPTCHA. web2py supports reCAPTCHA``recaptcha``:cite  out of the box. This is because reCAPTCHA is very well designed, free, accessible (it can read the words to the visitors), easy to set up, and does not require installing any third-party libraries.
+Abyste zabránili robotům v registraci na vašich stránkách, možná budete chtít využít kontrolní obrázek (CAPTCHA). Web2py obsahuje podporu reCAPTCHA``recaptcha``:cite. reCAPTCHA je dobře navržena, zdarma, podporuje přístupnost (může přečíst slovo návštěvníkovi), je snadno nastavitelná a nevyžaduje instalaci dalších knihoven třetích stran.
 
-This is what you need to do to use reCAPTCHA:
-- Register with reCAPTCHA``recaptcha``:cite  and obtain a (PUBLIC_KEY, PRIVATE_KEY) couple for your account. These are just two strings.
-- Append the following code to your model after the ``auth`` object is defined:
+Pro používání reCAPTCHA budete potřebovat toto:
+- Zaregistrujte se na reCAPTCHA (google.com/recaptcha)``recaptcha``:cite a získejte tak k vašemu účtu klíče (PUBLIC_KEY, PRIVATE_KEY). Jsou to vlastně 2 řetězce.
+- Do kódu ve vašem modelu přidejte následující, a sice někam za vytvoření objektu ``auth``:
 ``
 from gluon.tools import Recaptcha
 auth.settings.captcha = Recaptcha(request,
     'PUBLIC_KEY', 'PRIVATE_KEY')
 ``:code
 
-reCAPTCHA may not work if you access the web site as 'localhost' or '127.0.0.1', because it is registered to work with publicly visible web sites only.
+reCAPTCHA nemusí pracovat na adresách 'localhost' nebo '127.0.0.1', protože je určena pro veřejně dostupné stránky.
 
-The ``Recaptcha`` constructor takes some optional arguments:
+``Recaptcha`` konstruktor má některé volitelné parametry:
 ``
 Recaptcha(..., use_ssl=False, error_message='invalid', label='Verify:', options='')
 ``:code
 
-There is an experimental argument, ``ajax=True``, which uses the ajax API to recaptcha. It can be used with any recaptcha, but it was specifically added to allow recpatcha fields to work in LOAD forms (see Chapter 12 for more about LOAD, which allows web2py to 'plugin' components of a page with ajax ). It's experimental because it may be replaced with automatic detection of when ajax is required.
+Dále je zde experimentální argument ``ajax=True``, který pro recaptcha využívá Ajaxové API. Lze jej použít pro kteroukoli reCaptcha, ale byl přidán kvůli umožnění použití reCaptcha v LOAD formulářích (více viz v kapitole 12, o LOAD, které ve Web2py umožňuje začleňovat do stránky komponenty pomocí Ajaxu). Jedná se o experimentální parametr, protože možná bude nahrazen automatickou detekcí, zda je Ajax v daném případě potřeba.
 
-Notice that ``use_ssl=False`` by default.
+Nepřehlédněte defaultní použití ``use_ssl=False``.
 
-``options`` may be a configuration string, e.g. ``options="theme:'white', lang:'fr'"``
+Pomocí ``options`` lze zadat konfigurační řetězec, např. ``options="theme:'white', lang:'fr'"``
 
-More details: [[reCAPTCHA http://www.google.com/recaptcha]]``recaptchagoogle``:cite  and [[customizing http://code.google.com/apis/recaptcha/docs/customization.html]]  .
+Více podrobností najdete zde: [[reCAPTCHA http://www.google.com/recaptcha]]``recaptchagoogle``:cite  a zde [[customizing http://code.google.com/apis/recaptcha/docs/customization.html]].
 
-If you do not want to use reCAPTCHA, look into the definition of the ``Recaptcha`` class in "gluon/tools.py", since it is easy to use other CAPTCHA systems.
+Pokud nechcete používat reCAPTCHA, ale jiný systém, podívejte se na definici třídy ``Recaptcha`` v "gluon/tools.py", jejíž úpravou můžete snadno jiný CAPTCHA systém implementovat.
 
-Notice that ``Recaptcha`` is just a helper that extends ``DIV``. It generates a dummy field that validates using the ``reCaptcha`` service and, therefore, it can be used in any form, including used defined FORMs:
-
-``
-form = FORM(INPUT(...),Recaptcha(...),INPUT(_type='submit'))
-``:code
-
-You can use it in all types of SQLFORM by injection:
+``Recaptcha`` není nic víc než helper, který je odvozen z helperu ``DIV``. Generuje fiktivní pole, které validuje pomocí ``reCaptcha`` služby a může proto být použito v jakémkoli formuláři, včetně uživatelsky definovaných FORM:
 
 ``
-form = SQLFORM(...) or SQLFORM.factory(...)
-form.element('table').insert(-1,TR('',Recaptcha(...),''))
+form = FORM(INPUT(...), Recaptcha(...), INPUT(_type='submit'))
 ``:code
 
-#### Customizing ``Auth``
+Můžete jej vložit do všech SQLFORM formulářů takto:
 
-The call to
+``
+form = SQLFORM(...)   # nebo SQLFORM.factory(...)
+form.element('table').insert(-1, TR('', Recaptcha(...), ''))
+``:code
+
+#### Přizpůsobení ``Auth``
+
+Volání
 ``
 auth.define_tables()
 ``:code
 
-defines all **Auth** tables that have not been defined already. This means that if you wish to do so, you can define your own ``auth_user`` table.
+definuje všechny potřebné **Auth** tabulky, které nebyly definovány dříve. Znamená to, že když to budete chtí udělat, můžete i definovat vlastní ``auth_user`` tabulku.
 
-There are a number of ways to customize auth. The simplest way is to add extra fields:
+Je řada možností, jak auth přizpůsobit. Nejjednodušší je přidat do registrace uživatelů extra pole navíc:
 
 ``
-## after auth = Auth(db)
+## po příkazu: auth = Auth(db)
 auth.settings.extra_fields['auth_user']= [
-  Field('address'),
-  Field('city'),
-  Field('zip'),
-  Field('phone')]
-## before auth.define_tables(username=True)
+  Field('ulice'),
+  Field('misto'),
+  Field('psc'),
+  Field('telefon')]
+## před příkazem: auth.define_tables(username=True)
 ``
 
-You can declare extra fields not just for table "auth_user" but also for other "auth_" tables.
-Using ``extra_fields`` is the recommended way as it will not break any internal mechanism.
+Stejně jako pro "auth_user" tabulku můžete pole navíc definovat i v jiných "auth_" tabulkách.
+Použití metody ``extra_fields`` je doporučený způsob, protože nenaruší interní machanismus auth.
 
-Another way to do this, although not really recommended, consists of defining your auth tables yourself. If a table is declared before ``auth.define_tables()`` it is used instead of the default one. Here is how to do it:
+Jiný způsob, i když nikoli doporučený, je definovat tabulky zcela po svém. Jestliže tabulku deklarujete před ``auth.define_tables()``, bude použita místo defaultní tabulky. Můžete to udělat třeba takto:
 
 ``
-## after auth = Auth(db)
+## po příkazu: auth = Auth(db)
 db.define_table(
     auth.settings.table_user_name,
-    Field('first_name', length=128, default=''),
-    Field('last_name', length=128, default=''),
-    Field('email', length=128, default='', unique=True), # required
-    Field('password', 'password', length=512,            # required
+    Field('krestni', length=128, default=''),
+    Field('prijmeni', length=128, default=''),
+    Field('email', length=128, default='', unique=True), # vyžadováno
+    Field('password', 'password', length=512,            # vyžadováno
           readable=False, label='Password'),
-    Field('address'),
-    Field('city'),
-    Field('zip'),
-    Field('phone'),
-    Field('registration_key', length=512,                # required
+    Field('ulice'),
+    Field('misto'),
+    Field('psc'),
+    Field('telefon'),
+    Field('registration_key', length=512,                # vyžadováno
           writable=False, readable=False, default=''),
-    Field('reset_password_key', length=512,              # required
+    Field('reset_password_key', length=512,              # vyžadováno
           writable=False, readable=False, default=''),
-    Field('registration_id', length=512,                 # required
+    Field('registration_id', length=512,                 # vyžadováno
           writable=False, readable=False, default=''))
 
-## do not forget validators
-custom_auth_table = db[auth.settings.table_user_name] # get the custom_auth_table
-custom_auth_table.first_name.requires = \
+## nezapomeňte na validátory
+custom_auth_table = db[auth.settings.table_user_name]    # odkaz na uživatelsky definovanou tabulku do proměnné
+custom_auth_table.krestni.requires = \
   IS_NOT_EMPTY(error_message=auth.messages.is_empty)
-custom_auth_table.last_name.requires = \
+custom_auth_table.prijmeni.requires = \
   IS_NOT_EMPTY(error_message=auth.messages.is_empty)
 custom_auth_table.password.requires = [IS_STRONG(), CRYPT()]
 custom_auth_table.email.requires = [
   IS_EMAIL(error_message=auth.messages.invalid_email),
   IS_NOT_IN_DB(db, custom_auth_table.email)]
 
-auth.settings.table_user = custom_auth_table # tell auth to use custom_auth_table
+auth.settings.table_user = custom_auth_table             # informovat auth objekt, aby použil custom_auth_table
 
-## before auth.define_tables()
+## před příkazem: auth.define_tables()
 ``:code
 
-You can add any field you wish, and you can change validators but you cannot remove
-the fields marked as "required" in this example.
+Můžete přidat jakákoli pole chcete a změnit validace, ale je potřeba zachovat pole, označená v příkladu komentářem "vyžadováno".
 
-It is important to make "password", "registration_key", "reset_password_key" and "registration_id" fields ``readable=False`` and ``writable=False``, since a visitor must not be allowed to tamper with them.
+Je důležité pole "password", "registration_key", "reset_password_key" a "registration_id" doplnit nastavením ``readable=False`` a ``writable=False``, protože návštěvník je nesmí mít přístupná.
 
-If you add a field called "username", it will be used in place of "email" for login. If you do, you will need to add a validator as well:
+Jestliže použijete pole s názvem "username", bude se při přihlašování používat místo pole "email". V tom případě musíte zase přidat validátor:
 ``
 auth_table.username.requires = IS_NOT_IN_DB(db, auth_table.username)
 ``:code
 
-Note that Auth caches the logged in user in the session and that's what you get in ``auth.user``, so you need to clear the sessions for the extra fields changes to be reflected in it.
+Auth kešuje (záznam) přihlášeného uživatele pomocí session a to jsou údaje, které dostanete v ``auth.user``. Takže jestliže po změně obsahu polí chcete mít i aktuální obsah ``auth.user``, musíte resetovat session.
 
 
 #### Renaming ``Auth`` tables
