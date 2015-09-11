@@ -367,10 +367,10 @@ auth_table.username.requires = IS_NOT_IN_DB(db, auth_table.username)
 Auth kešuje (záznam) přihlášeného uživatele pomocí session a to jsou údaje, které dostanete v ``auth.user``. Takže jestliže po změně obsahu polí chcete mít i aktuální obsah ``auth.user``, musíte resetovat session.
 
 
-#### Renaming ``Auth`` tables
+#### Přejmenování ``Auth`` tabulek
 [renaming_auth_tables]
 
-The actual names of the ``Auth`` tables are stored in
+Aktuální jména ``Auth`` tabulek jsou uložena v:
 ``
 auth.settings.table_user_name = 'auth_user'
 auth.settings.table_group_name = 'auth_group'
@@ -379,15 +379,15 @@ auth.settings.table_permission_name = 'auth_permission'
 auth.settings.table_event_name = 'auth_event'
 ``:code
 
-The names of the table can be changed by reassigning the above variables after the ``auth`` object is defined and before the Auth tables are defined. For example:
+Jména tabulek můžete změnit přiřazením do uvedených proměnných, a sice poté, kdy je vytvořen objekt ``auth`` a dříve než je voláno auth.define_tables(). Například:
 ``
 auth = Auth(db)
-auth.settings.table_user_name = 'person'
+auth.settings.table_user_name = 'uzivatele'
 #...
 auth.define_tables()
 ``:code
 
-The actual tables can also be referenced, independently of their actual names, by
+Na tabulky se kromě jejich aktuálního jména můžete odkazovat i takto (nezávisle na konkrétním jménu):
 ``
 auth.settings.table_user
 auth.settings.table_group
@@ -396,33 +396,33 @@ auth.settings.table_permission
 auth.settings.table_event
 ``:code
 
-Note: auth.signature gets defined when Auth is initialized, which is before you have set the custom table names. To avoid this do:
+Poznámka: auth.signature se normálně definuje už při vytvoření auth objektu, tedy dříve, než změníte jména tabulek. Je potřeba tomu zabránit, a sice takto:
 
 ``
 auth = Auth(db, signature=False)
 ``
 
-In that case, auth.signature will instead be defined when you call auth.define_tables(), by which point the custom tables names will already be set.
+Tím se auth.signature definuje až při volání auth.define_tables(), jak v tomto případě potřebujeme.
 
 
-#### Other login methods and login forms
+#### Další přihlašovací (login) metody a formuláře
 
 ``LDAP``:inxx ``PAM``:inxx
 
-Auth provides multiple login methods and hooks to create new login methods. Each supported login method corresponds to a file in the folder
+Auth nabízí mnoho přihlašovacích metod a další možnosti (hooks), jak umožnit nové přihlašovací metody. Každé podporované přihlašovací metodě odpovídá jeden soubor v adresáři
 ``
 gluon/contrib/login_methods/
 ``:code
 
-Refer to the documentation in the files themselves for each login method, but here are some examples.
+Dokumentaci pro odpovídající metodu najdete přímo v samotných souborech, nicméně zde si ukážeme nějaké příklady.
 
-First of all, we need to make a distinction between two types of alternate login methods:
-- login methods that use a web2py login form (although the credentials are verified outside web2py). An example is LDAP.
-- login methods that require an external single-sign-on form (an example is Google and Facebook).
+Především potřebujeme rozlišovat mezi dvěma typy alternativních přihlašovacích metod:
+- metody, které využívají přihlašovací formulář Web2py (ačkoli údaje jsou verifikovány mimo Web2py). Příkladem je LDAP.
+- metody, které vyžadují externí přihlašovací formulář (příkladem je Google nebo Facebook).
 
-In the latter case, web2py never gets the login credentials, only a login token issued by the service provider. The token is stored in ``db.auth_user.registration_id``.
+Ve druhém případě Web2py nikdy nezíská přihlašovací údaje, jen přihlašovací token (řetězec), vystavený provozovatelem služby. Token je uložen do ``db.auth_user.registration_id``.
 
-Let's consider examples of the first case:
+Ukažme si příklady první varianty:
 
 ##### Basic
 
