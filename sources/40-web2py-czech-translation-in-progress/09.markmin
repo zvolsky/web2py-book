@@ -471,21 +471,21 @@ Totéž chování dostanete i pro ostatní metody, které zde popisujeme.
 ##### SMTP a Gmail
 ``SMTP``:inxx ``Gmail``:inxx
 
-Můžete ověřit přihlašovací údaje ----------You can verify login credentials using a remote SMTP server, for example Gmail; i.e., you log the user in if the email and password they provide are valid credentials to access the Gmail SMTP server (``smtp.gmail.com:587``). All that is needed is the following code:
+Můžete ověřit přihlašovací údaje pomocí některého SMTP serveru, např. pomocí Gmailu. Jinak řečeno, uživatele přihlásíte, pokud zadá svoji platnou e-mailovou adresu Gmailu a heslo, neboli pokud se bude jednat o platné přihlašovací údaje ke Gmail SMTP serveru (``smtp.gmail.com:587``). K tomu je potřeba následující kód:
 ``
 from gluon.contrib.login_methods.email_auth import email_auth
 auth.settings.login_methods.append(
     email_auth("smtp.gmail.com:587", "@gmail.com"))
 ``:code
 
-The first argument of ``email_auth`` is the address:port of the SMTP server. The second argument is the email domain.
+První argument pro ``email_auth`` je adresa:port SMTP serveru. Druhý argument je doména emailu.
 
-This works with any SMTP server that requires TLS authentication.``TLS``:inxx
+Lze to použít pro kterýkoli SMTP server s TLS autentikací.``TLS``:inxx
 
 ##### PAM
 ``PAM``:inxx
 
-Authentication using Pluggable Authentication Modules (PAM) works as in the previous cases. It allows web2py to authenticate users using the operating system accounts:
+Jedná se o standardně implementovanou autentikaci v systémech typu UNIX/Linux. Autentikace pomocí Pluggable Authentication Modules (PAM) pracuje stejně jako v předchozích případech a umožňuje Web2py autentikovat uživatele pomocí jejich účtu v operačním systému:
 ``
 from gluon.contrib.login_methods.pam_auth import pam_auth
 auth.settings.login_methods.append(pam_auth())
@@ -494,9 +494,9 @@ auth.settings.login_methods.append(pam_auth())
 ##### LDAP
 ``LDAP``:inxx
 
-Authentication using LDAP works very much as in the previous cases.
+Autentikace pomocí LDAP pracuje velice podobně předchozím případům.
 
-To use LDAP login with MS Active Directory:``Active Directory``:inxx
+Pro použití LDAP přihlášení s MS Active Directory:``Active Directory``:inxx
 ``
 from gluon.contrib.login_methods.ldap_auth import ldap_auth
 auth.settings.login_methods.append(ldap_auth(mode='ad',
@@ -504,19 +504,19 @@ auth.settings.login_methods.append(ldap_auth(mode='ad',
    base_dn='ou=Users,dc=domain,dc=com'))
 ``:code
 
-To use LDAP login with Lotus Notes and Domino:``Lotus Notes``:inxx ``Domino``:inxx
+Pro LDAP přihlášení s Lotus Notes a Domino:``Lotus Notes``:inxx ``Domino``:inxx
 ``
 auth.settings.login_methods.append(ldap_auth(mode='domino',
    server='my.domino.server'))
 ``:code
 
-To use LDAP login with OpenLDAP (with UID):``OpenLDAP``:inxx
+Pro LDAP přihlášení s OpenLDAP (s UID):``OpenLDAP``:inxx
 ``
 auth.settings.login_methods.append(ldap_auth(server='my.ldap.server',
    base_dn='ou=Users,dc=domain,dc=com'))
 ``:code
 
-To use LDAP login with OpenLDAP (with CN):
+Pro LDAP přihlášení s OpenLDAP (s CN):
 ``
 auth.settings.login_methods.append(ldap_auth(mode='cn',
    server='my.ldap.server', base_dn='ou=Users,dc=domain,dc=com'))
@@ -525,7 +525,7 @@ auth.settings.login_methods.append(ldap_auth(mode='cn',
 ##### Google App Engine
 ``GAE login``:inxx
 
-Authentication using Google when running on Google App Engine requires skipping the web2py login form, being redirected to the Google login page, and back upon success. Because the behavior is different than in the previous examples, the API is a little different.
+Autentikace pomocí Google účtu, když provozujete aplikaci na Google App Engine, vyžaduje vynechat Web2py přihlašovací formulář a místo něj být přesměrován na přihlašovací stránku Googlu a po úspěšném přihlášení zpět. Protože je chování oproti předchozím případům odlišné, liší se i API.
 
 ``
 from gluon.contrib.login_methods.gae_google_login import GaeGoogleAccount
@@ -535,16 +535,16 @@ auth.settings.login_form = GaeGoogleAccount()
 ##### OpenID
 ``OpenID``:inxx
 
-We have previously discussed integration with Janrain (which has OpenID support) and that is the easiest way to use OpenID. Yet sometimes you do not want to rely on a third party service and you want to access the OpenID provider directly from the consumer (your app).
+Dříve jsme probrali integraci se službou Janrain (která má podporu OpenID) a to je nejsnazší způsob, jak OpenID použít. Ale někdy nechcete být závislí na službě třetí strany a chcete použít poskytovatele OpenID (OpenID provider) přímo z klienta (vaší aplikace).
 
-Here is an example:
+Tady je příklad:
 
 ``
 from gluon.contrib.login_methods.openid_auth import OpenIDAuth
 auth.settings.login_form = OpenIDAuth(auth)
 ``:code
 
-``OpenIDAuth`` requires the ''python-openid'' module to be installed separately. Under the hood, this login method defines the following table:
+``OpenIDAuth`` vyžaduje, aby byl instalován modul ''python-openid''. Tato přihlašovací metoda si nadefinuje následující tabulku:
 
 ``
 db.define_table('alt_logins',
@@ -553,7 +553,7 @@ db.define_table('alt_logins',
     Field('user', self.table_user, readable=False))
 ``:code
 
-which stores the openid usernames for each user. If you want to display the openids for the current logged in user:
+do ní se uloží openid jména uživatelů pro jednotlivé uživatele. Jestliže chcete zobrazit openid jména aktuálně přihlášeného uživatele, použijte (v tomto příkladu v šabloně):
 
 ``
 {{=auth.settings.login_form.list_user_openids()}}
@@ -562,60 +562,51 @@ which stores the openid usernames for each user. If you want to display the open
 ##### OAuth2.0
 ``OAuth``:inxx ``Facebook``:inxx ``Google``:inxx ``Twitter``:inxx
 
-We have previously discussed integration with Janrain, yet sometimes you do not want to rely on a third party service and you want to access a OAuth2.0 provider directly;
-for example, Facebook, Linkedin, Twitter, Google all of them provide an OAuth2.0 authentication service.
-web2py handles the OAuth2.0 flow transparently so that a user can be verified against any configured OAuth2.0 
-provider during login.
-Other than authentication an OAuth2.0 provider can grant to any web2py application access to user resources
-with restricted access thought a proprietary API.  Google, Twitter, Facebook and so on, all have APIs that can be
-easily accessed by a web2py application.
+Opět je integrace možná pomocí služby Janrain, ale pro případ, že nechcete záviset na cizí službě a chcete použít OAuth2.0 providera přímo.
+Například Facebook, Linkedin, Twitter, Google vesměs poskytují OAuth2.0 autentikační službu.
+Web2py transparentně ošetří komunikaci s OAuth2.0, takže uživatel může býtověřen proti kterémukoli OAuth2.0 poskytovateli, kterého konfigurujete.
+Kromě autentikace může OAuth2.0 provider poskytovat Web2py aplikaci omezený přístup k datům uživatele pomocí proprietárního rozhraní (API). Google, Twitter, Facebook, apod. vesměs mají vlastní API rozhraní, které můžete snadno použít z Web2py aplikace.
 
-It must be underlined that OAuth2.0 is limited only to authentication and authorization
-(for instance CAS has more functionalities), this means that each OAuth2.0 provider
-has a different way to receive a unique id from their user database through one of their APIs.
-Specific methods are well explained on respective provider documentation, they usually consist in a very
-simple REST call.  This is why for each OAuth2.0 provider there is the need to write a few lines of code. 
+Je potřeba říci, že OAuth2.0 je omezena jen na autentikaci a autorizaci
+(kdežto např. CAS (Centrální autentizace stránek) poskytuje větší funkčnost), a to znamená, že každý OAuth2.0 poskytovatel
+má odlišný způsob (rozhraní), jak získat unikátní id a informace o něm z databáze uživatelů tohoto poskytovatele.
+Konkrétní metody bývají dobře popsány v dokumentaci příslušného poskytovatele a jedná se obvykle o jednoduchá REST volání. Z tohoto důvodu je tedy potřeba pro každého konkrétního poskytovatele dopsat nějaký kód.
 
-Before writing any instructions in the application model a first step is needed for any provider: registering a new application;  this is usually done
-on provider's site and is explained in provider's documentation.
+Než kód dopíšeme, první krok je společný pro všechny poskytovatele: zaregistrovat novou aplikaci. Dělá se to nejčastěji na stránkách poskytovatele a popisuje to jeho dokumentace.
 
-There are a few things that needs to be known once there is the need to add a new OAuth2.0 provider to your
+Při přidání nového OAuth2.0 poskytovatele do vaší aplikace je pak potřeba znát několik údajů:
 application:
- 1. the Authorization URI;
- 2. the Token request URI;
- 3. the application identification token and secret received upon registration of the new application;
- 4. the permissions that the provider must grant to the web2py application, i.e. the "scope" (see the provider's documentation);
- 5. the API call to receive a UID of the authenticating user, as explained on providers documentation.
+ 1. adresu pro autorizaci (Authorization URI),
+ 2. adresu pro Token request (Token request URI),
+ 3. aplikační identifikační token a heslo (secret), které jste získali registrací aplikace u poskytovatele,
+ 4. oprávnění, která poskytovatel dává Web2py aplikaci ("scope", viz dokumentace poskytovatele),
+ 5. API volání pro získání UID autentizovaného uživatele, rovněž z dokumentace.
  
-Point 1 to 4 are used to initialize the authorization endpoint used by web2py to communicate with the OAuth2.0 provider.
-The unique id is retrieved by web2py with a call to the get_user() method when needed during the login flow; this is where
-the API call of point 5 is needed.
+Body 1 až 4 nám poslouží ke konfiguraci autorizačního přípojného bodu, který Web2py použije ke komunikaci s OAuth2.0 poskytovatelem.
+Unikátní id potřebuje Web2py získávat voláním metody get_user(), když je to během procesu přihlášení potřeba. A právě k tomu potřebujeme znát API volání podle bodu 5.
 
-These are the essential modification that need to be done in your model:
- a. import OAuthAccount class;
- b. define a derived OAuthClass implementation;
- c. override __init__() method of that class;
- d. override get_user() method of that class.
- e. instantiate the class with the data of points 1-4 of the above list;
+Toto jsou podstatné změny, které je potřeba někde ve vašem modelu provést:
+ a. importovat třídu OAuthAccount;
+ b. definovat odvozenou OAuthClass implementaci (zdědit uvedenou třídu);
+ c. přepsat metodu __init__() zděděné třídy;
+ d. přepsat metodu get_user() zděděné třídy;
+ e. instanciovat výslednou třídu s předáním údajů podle výše uvedených bodů 1-4;
 
-Once the class is instantiated, and the user is authenticated, the web2py application
-can access the API of the provider any time by using the OAuth2.0 access token by calling the accessToken() method
-of that class.
+Jakmile provedeme instanciování třídy a jakmile je uživatel autentikován, může Web2py aplikace kdykoli přistupovat k API rozhraní poskytovatele tím, že použije přístupový token pro OAuth2.0, a to voláním metody accessToken() naší třídy.
 
-What follows is an example of what can be used with Facebook.  This is a basic example using Facebook Graph API,
-remind that, by writing a proper get_user() method, many different things can be done.  The example shows how the
-OAuth2.0 access token can be used when calling the remote API of the provider.
+Dále uvádíme příklad, jak to může pracovat v případě Facebooku. Je to jen základní příklad použití Graph API Facebooku,
+takže mějte na paměti, že vhodným návrhem metody get_user() můžete dělat mnohem více. Příklad ukazuje, jak může být použit přístupový token pro OAuth2.0 k volání vzdáleného API rozhraní poskytovatele.
 
-First of all you must install the [[Facebook Python SDK https://github.com/pythonforfacebook/facebook-sdk/]].
+Nejprve musíme instalovat [[Facebook Python SDK https://github.com/pythonforfacebook/facebook-sdk/]].
 
-Second, you need the following code in your model:
+Dále budete potřebovat tento kód ve vašem modelu:
 
 ``
-## Define oauth application id and secret.
+## Definujeme oauth aplikační id a heslo (secret).
 FB_CLIENT_ID='xxx'
 FB_CLIENT_SECRET="yyyy"
 
-## import required modules
+## importujeme potřebné moduly
 try:
     import json
 except ImportError:
@@ -623,24 +614,22 @@ except ImportError:
 from facebook import GraphAPI, GraphAPIError
 from gluon.contrib.login_methods.oauth20_account import OAuthAccount
 
-
-## extend the OAUthAccount class
+## zdědíme a rozšíříme OAUthAccount třídu
 class FaceBookAccount(OAuthAccount):
-    """OAuth impl for FaceBook"""
+    """OAuth implementace pro FaceBook"""
     AUTH_URL="https://graph.facebook.com/oauth/authorize"
     TOKEN_URL="https://graph.facebook.com/oauth/access_token"
 
     def __init__(self):
         OAuthAccount.__init__(self, None, FB_CLIENT_ID, FB_CLIENT_SECRET,
                               self.AUTH_URL, self.TOKEN_URL,
-                              scope='email,user_about_me,user_activities, user_birthday, user_education_history, user_groups, user_hometown, user_interests, user_likes, user_location, user_relationships, user_relationship_details, user_religion_politics, user_subscriptions, user_work_history, user_photos, user_status, user_videos, publish_actions, friends_hometown, friends_location,friends_photos',
+                              scope='email, user_about_me, user_activities, user_birthday, user_education_history, user_groups, user_hometown, user_interests, user_likes, user_location, user_relationships, user_relationship_details, user_religion_politics, user_subscriptions, user_work_history, user_photos, user_status, user_videos, publish_actions, friends_hometown, friends_location, friends_photos',
                               state="auth_provider=facebook",
                               display='popup')
         self.graph = None
 
     def get_user(self):
-        '''Returns the user using the Graph API.
-        '''
+        '''Vrátí údaje uživatele za pomoci Graph API."""
         if not self.accessToken():
             return None
 
@@ -670,23 +659,23 @@ class FaceBookAccount(OAuthAccount):
                         username = username,
                         email = '%s' %(email) )
 
-## use the above class to build a new login form
+## použijeme předchozí třídu pro vytvoření přihlašovacího formuláře
 auth.settings.login_form=FaceBookAccount()
 ``:code
 
 ##### LinkedIn
 ``LinkedIn``:inxx
 
-We have previously discussed integration with Janrain (which has LinkedIn support) and that is the easiest way to use OAuth. Yet sometime you do not want to rely on a third party service or you may want to access LinkedIn directly to get more information than Janrain provides.
+Takto můžeme pracovat s LinkedIn přímo (bez služby Janrain) a mít tím přístup k více informacím, než kolik umožňuje přístup prostřednictvím Janrain.
 
-Here is an example:
+Tady je příklad:
 
 ``
 from gluon.contrib.login_methods.linkedin_account import LinkedInAccount
-auth.settings.login_form=LinkedInAccount(request,KEY,SECRET,RETURN_URL)
+auth.settings.login_form = LinkedInAccount(request, KEY, SECRET, RETURN_URL)
 ``:code
 
-``LinkedInAccount`` requires the "python-linkedin" module installed separately.
+``LinkedInAccount`` vyžaduje mít instalovaný modul "python-linkedin".
 
 ##### X509
 
