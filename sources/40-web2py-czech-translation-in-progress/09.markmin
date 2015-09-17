@@ -204,7 +204,7 @@ Nejjednodušší cestou je použít Janrain Engage (dříve RPX) (janrain.com), 
 
 Dropbox diskutujeme jako zvláštní případ v kapitole 14, protože umožňuje více než jen přihlášení, a sice poskytuje přihlášenému uživateli úložný prostor (služby ukládání).
 
-Janrain Engage (Social Login) je služba, která poskytuje middleware autentikaci. Zaregistrujete se na janrain.com, zaregistrujete domainu (jméno vaší aplikace) a nastavíte URL adresy, které budete používat, poté získáte API klíč.
+Janrain Engage (Social Login) je služba, která poskytuje middleware autentikaci. Zaregistrujete se na janrain.com, zaregistrujete doménu (jméno vaší aplikace) a nastavíte URL adresy, které budete používat, poté získáte API klíč.
 
 Potom změňte model vaší Web2py aplikace a umístěte někam za definici ``auth`` objektu následující řádky:
 
@@ -219,7 +219,7 @@ auth.settings.login_form = RPXAccount(request,
 
 První řádek importuje novou metodu přihlášení, druhý zakáže lokální registraci a třetí řekne Web2py, aby použilo RPX přihlašování. Musíte zadat ``api_key``, které jste na službě janrain.com získali, doménu, kterou jste v registraci zvolili a externí ``url`` vaší přihlašovací stránky. Na janrain.com najdete údaje tak, že jdete do [Deployment][Application Settings]. Vpravo najdete "Application Info", klíč api_key zde vidíte jako "API Key (Secret)".
 
-Domaina je údaj "Application Domain", poté co z něj vynecháte úvodní "https://" a koncové ".rpxnow.com/"
+Domain je údaj "Application Domain", poté co z něj vynecháte úvodní "https://" a koncové ".rpxnow.com/"
 Například když zaregisttujete stránku "secure.mywebsite.org", Janrain vytvoří tuto Application Domain "https://secure-mywebsite.rpxnow.com" a "secure-mywebsite" je jméno, které nastavíte jako 'domain='.
 
 
@@ -426,13 +426,13 @@ Ukažme si příklady první varianty:
 
 ##### Basic
 
-Let's say you have an authentication service, for example at the url
+Dejme tomu, že máte autentikační službu, např. na adrese
 
 ``
 https://basic.example.com
 ``:code
 
-that accepts basic access authentication. That means the server accepts HTTP requests with a header of the form:
+která akceptuje základní autentikaci (basic access authentication). To znamená, že server akceptuje HTTP požadavek s tímto formátem hlavičky:
 
 ``
 GET /index.html HTTP/1.0
@@ -440,38 +440,38 @@ Host: basic.example.com
 Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==
 ``:code
 
-where the latter string is the base64 encoding of the string username:password. The service responds 200 OK if the user is authorized and 400, 401, 402, 403 or 404 otherwise.
+kde poslední řetězec je base64 zakódovaný řetězec username:password. Služba odpoví 200 OK v případě úspěšného ověření, jinak 400, 401, 402, 403 nebo 404.
 
-You want to enter username and password using the standard ``Auth`` login form and verify the credentials against such a service. All you need to do is add the following code to your application
+Chcete zadat uživatelské jméno a heslo do standardního ``Auth`` přihlašovacího formuloře a ověřit je pomocí uvedené služby. Všechno, co k tomu potřebujete, je přidat do vaší aplikace tento kód:
 ``
 from gluon.contrib.login_methods.basic_auth import basic_auth
 auth.settings.login_methods.append(
     basic_auth('https://basic.example.com'))
 ``:code
 
-Notice that ``auth.settings.login_methods`` is a list of authentication methods that are executed sequentially.
-By default it is set to
+``auth.settings.login_methods`` je seznam autentikačních metod, které se provedou postupně.
+Defaultní nastavení je takovéto:
 ``
 auth.settings.login_methods = [auth]
 ``:code
 
-When an alternate method is appended, for example ``basic_auth``, **Auth** first tries to log in the visitor based on the content of ``auth_user``, and when this fails, it tries the next method in the list. If a method succeeds in logging in the visitor, and if ``auth.settings.login_methods[0]==auth``, ``Auth`` takes the following actions:
-- if the user does not exist in ``auth_user``, a new user is created and the username/email and passwords are stored.
-- if the user does exist in ``auth_user`` but the new accepted password does not match the old stored password, the old password is replaced with the new one (notice that passwords are always stored hashed unless specified otherwise).
+Když rozšíříte seznam o alternativní metodu, například ``basic_auth``, **Auth** se nejprve pokusí přihlásit návštěvníka pomocí tabulky ``auth_user`` a když se to nepovede, zkusí následující metodu v seznamu. Jestiže ta uspěje a ověří uživatele a jestliže ``auth.settings.login_methods[0]==auth``, ``Auth`` podnikne následující:
+- jestliže uživatel zatím neexistuje v ``auth_user``, vytvoří v této tabulce záznam pro nového uživatele a uloží jméno a heslo.
+- jestliže uživatel v ``auth_user`` existuje, ale heslo v tabulce neodpovídá novému heslu (akceptovanému basic službou), nahradí staré heslo novým (hesla jsou ovšem vždy hashována, pokud není explicitně požadováno něco jiného).
 
-If you do not wish to store the new password in ``auth_user``, then it is sufficient to change the order of login methods, or remove ``auth`` from the list. For example:
+Jestliže nechcete změněné heslo ukládat do ``auth_user``, stačí změnit pořadí přihlašovacích metod nebo lze metodu ``auth`` ze seznamu zcela vypustit. Například:
 ``
 from gluon.contrib.login_methods.basic_auth import basic_auth
 auth.settings.login_methods = \
     [basic_auth('https://basic.example.com')]
 ``:code
 
-The same applies for any other login method described here.
+Totéž chování dostanete i pro ostatní metody, které zde popisujeme.
 
-##### SMTP and Gmail
+##### SMTP a Gmail
 ``SMTP``:inxx ``Gmail``:inxx
 
-You can verify login credentials using a remote SMTP server, for example Gmail; i.e., you log the user in if the email and password they provide are valid credentials to access the Gmail SMTP server (``smtp.gmail.com:587``). All that is needed is the following code:
+Můžete ověřit přihlašovací údaje ----------You can verify login credentials using a remote SMTP server, for example Gmail; i.e., you log the user in if the email and password they provide are valid credentials to access the Gmail SMTP server (``smtp.gmail.com:587``). All that is needed is the following code:
 ``
 from gluon.contrib.login_methods.email_auth import email_auth
 auth.settings.login_methods.append(
