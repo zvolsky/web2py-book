@@ -660,7 +660,7 @@ class FaceBookAccount(OAuthAccount):
                         email = '%s' %(email) )
 
 ## použijeme předchozí třídu pro vytvoření přihlašovacího formuláře
-auth.settings.login_form=FaceBookAccount()
+auth.settings.login_form = FaceBookAccount()
 ``:code
 
 ##### LinkedIn
@@ -679,32 +679,32 @@ auth.settings.login_form = LinkedInAccount(request, KEY, SECRET, RETURN_URL)
 
 ##### X509
 
-You can also login by passing to the page an x509 certificate and your credential will be extracted from the certificate. This requires ``M2Crypto`` installed from
+Je také možné přihlašovat se pomocí předání x509 certifikátu stránce, kdy vaše údaje (credential) budou extrahovány z certifikátu. K tomu je potřeba mít instalováno ``M2Crypto`` z některého z odkazů
 
 ``
 http://chandlerproject.org/bin/view/Projects/MeTooCrypto
+https://pypi.python.org/pypi/M2Crypto
 ``
-
-Once you have M2Cryption installed you can do:
+Je-li M2Crypto nainstalováno, pak můžete provést toto:
 
 ``
 from gluon.contrib.login_methods.x509_auth import X509Account
-auth.settings.actions_disabled=['register','change_password','request_reset_password']
+auth.settings.actions_disabled = ['register', 'change_password', 'request_reset_password']
 auth.settings.login_form = X509Account()
 ``:code
 
-You can now authenticate into web2py passing your x509 certificate. How to do this is browser-dependent, but probably you are more likely to use certificates for web services. In this case you can use for example ``cURL`` to try out your authentication:
+Nyní se lze do Web2py aplikace přihlašovat předáním vašeho x509 certifikátu. Jak to dělat, závisí na prohlížeči, ale pravděpodobně spíše požijete certifikáty pro přístup k web services. V takovém případě můžete odzkoušet autentikaci např. pomocí ``cURL``:
 
 ``
 curl -d "firstName=John&lastName=Smith" -G -v --key private.key \
      --cert  server.crt https://example/app/default/user/profile
 ``
 
-This works out of the box with Rocket (the web2py built-in web server) but you may need some extra configuration work on the web server side if you are using a different web server. In particular you need to tell your web server where the certificates are located on local host and that it needs to verify certificates coming from the clients. How to do it is web server dependent and therefore omitted here.
+Takto to pracuje bez dalších úprav s Rocket serverem (vestavěný webový server ve Web2py), ale jestliže používáte jiný webový server, je možné, že budete muset provést další konfiguraci navíc. Konkrétně je potřeba webovému serveru zadat, kde jsou umístěny lokální certifikáty a že má ověřovat certifikáty z klientů. Tato nastavení závisí na konkrétním serveru, takže je neuvádíme zde.
 
-##### Multiple login forms
+##### Více přihlašovacích formulářů
 
-Some login methods modify the login_form, some do not. When they do that, they may not be able to coexist. Yet some coexist by providing multiple login forms in the same page. web2py provides a way to do it. Here is an example mixing normal login (auth) and RPX login (janrain.com):
+Některé přihlašovací metody modifikují přihlašovací formulář, kdežto jiné ne. Pokud přihlašovací formulář mění, vzniká problém s jejich společnou existencí v rámci jedné stránky. Web2py nabízí možnost, jak to zařídit. Tady je příklad, který nabízí současně normální login (auth) a RPX login (janrain.com):
 
 ``
 from gluon.contrib.login_methods.extended_login_form import ExtendedLoginForm
@@ -712,16 +712,15 @@ other_form = RPXAccount(request, api_key='...', domain='...', url='...')
 auth.settings.login_form = ExtendedLoginForm(auth, other_form, signals=['token'])
 ``:code
 
-If signals are set and a parameter in request matches any signals,
-it will return the call of ``other_form.login_form`` instead.
-``other_form`` can handle some particular situations, for example,
-multiple steps of OpenID login inside ``other_form.login_form``.
+Jestliže jsou nastaveny signals a parametry v požadavku (requestu) odpovídají všem signals,
+bude vráceno volání ``other_form.login_form``.
+``other_form`` může řešit nějaké specifické situace, například v několika krocích přihlášení OpenID, pomocí ``other_form.login_form``.
 
-Otherwise it will render the normal login form together with the ``other_form``.
+V opačném případě je renderován standardní přihlašovací formulář spolu s ``other_form``.
 
-#### Record versioning
+#### Verzování záznamů
 
-You can use Auth to enable full record versioning:
+Auth můžete využít k udržování úplné historie záznamů:
 
 ``
 auth.enable_record_versioning(db,
@@ -730,36 +729,31 @@ auth.enable_record_versioning(db,
     current_record='current_record'):
 ``:code
 
-This tells web2py to create an archive table for each of the tables in ``db`` and store a copy of each record when modified. The old copy is stored. The new copy is not.
+Tím Web2py řeknete, aby vytvořilo ke každé tabulce ``db`` další archivní tabulku a ukládalo do ní kopii záznamu (starý stav) před každou modifikací.
 
-The last three parameters are optional:
+Poslední tři parametery jsou volitelné:
 
-- ``archive_db`` allows to specify another database where the archive tables are to be stored. Setting it to ``None`` is the same as setting it to ``db``.
-- ``archive_names`` provides a pattern for naming each archive table.
-- ``current_record`` specified the name of the reference field to be used in the archive table to refer to the original, unmodified, record. Notice that ``archive_db!=db`` then the reference field is just an integer field since cross database references are not possible.
+- ``archive_db`` umožní přesměrovat archivní tabulky do jiné databáze. Nastavení ``None`` je identické s nastavením ``db`` - archivní tabulky se vytvoří tamtéž, jako "živé" tabulky.
+- ``archive_names`` je předloha pro vytváření jmen archivních tabulek.
+- ``current_record`` je jméno pole, které v archivní tabulce obsahuje odkaz na původní záznam. Poznamenejme, že pro případ jiného umístění archivních tabulek ``archive_db!=db`` se místo pole typu odkaz (reference) vytvoří obyčejný integer - protože (automatické) odkazy (reference) mezi databázemi nejsou možné.
 
 
-Only tables with ``modified_by`` and ``modified_on`` fields (as created
-for example by auth.signature) will be archived.
+Archivují se jen tabulky s poli ``modified_by`` a ``modified_on`` (jak je např. vytvoří auth.signature).
 
-When you ``enable_record_versioning``, if records have an
-``is_active`` field (also created by auth.signature),
-records will never be deleted but they will be marked with ``is_active=False``.
-In fact, ``enable_record_versioning`` adds a ``common_filter`` to
-every versioned table that filters out records with ``is_active=False`` so they essentially become invisible.
+Jestliže povolíte verzování (uchovávání historie záznamů) a když záznamy mají i pole ``is_active`` (také jej lze vytvořit pomocí auth.signature),
+záznamy nebudou fyzicky rušeny, ale místo toho budou označeny nastavením ``is_active=False``.
+``enable_record_versioning`` přidá ``common_filter`` ke každé verzované tabulce tak, aby záznamy s nastavením ``is_active=False`` nebyly vidět (tj. aby se práce s tabulkou jevila tak, jako by záznamy byly zrušeny fyzicky).
 
-If you ``enable_record_versioning``, you should not use
-``auth.archive`` or ``crud.archive`` else you will end up with duplicate records.
-Those functions do explicitly what ``enable_record_versioning`` does automatically and
-they will be deprecated.
+Jestliže povolíte verzování (``enable_record_versioning``), nepoužívejte ``auth.archive``, ani ``crud.archive``, v opačném případě se vám budou vytvářet duplikátní záznamy.
+Tyto funkce dělají právě to, co dělá ``enable_record_versioning`` automaticky - proto je považujme za zastaralé (deprecated).
 
 
 [[mail_and_auth]]
-#### ``Mail`` and ``Auth``
+#### ``Mail`` a ``Auth``
 
-You can read more about web2py API for emails and email configuration in [[Chapter 8 ../08 ]]. Here we limit the discussion to the interaction between ``Mail`` and ``Auth``.
+O Web2py rozhraní (API) pro emaily a o konfiguraci emailů se dočtete více v kapitole 8. Zde pouze vysvětlíme vztahy mezi ``Mail`` a ``Auth``.
 
-Define a mailer with
+Můžete definovat vlastní odesílání mailů
 
 ``
 from gluon.tools import Mail
@@ -770,7 +764,7 @@ mail.settings.login = 'username:password'
 
 ``
 
-or simply use the mailer provided by ``auth``:
+a nebo jednoduše převzít existující objekt odesílání mailů z objektu ``auth``:
 
 ``
 mail = auth.settings.mailer
@@ -779,45 +773,38 @@ mail.settings.sender = 'you@example.com'
 mail.settings.login = 'username:password'
 ``
 
-You need to replace the mail.settings with the proper parameters for your SMTP server. Set ``mail.settings.login = None`` if the SMTP server does not require authentication. If you don't want to use TLS, set ``mail.settings.tls = False``
+Musíte samozřejmě uvést správná nastavení vašeho SMTP serveru. Nastavení ``mail.settings.login = None`` použijte, pokud SMTP server nevyžaduje autentikaci. Nechcete-li použít TLS, nastavte navíc ``mail.settings.tls = False``.
 
 
-In ``Auth``, by default, email verification is disabled.
-To enable email, append the following lines in the model where ``auth`` is defined:
+V ``Auth`` je defaultně vypnuta verifikace pomocí emailů.
+Povolit ji můžete tak, že do modelu, který zakládá objekt ``auth``, doplníte:
 
 ``
 auth.settings.registration_requires_verification = True
 auth.settings.registration_requires_approval = False
 auth.settings.reset_password_requires_verification = True
-auth.messages.verify_email = 'Click on the link %(link)s to verify your email'
-auth.messages.reset_password = 'Click on the link %(link)s to reset your password'
+auth.messages.verify_email = 'Klikněte na odkaz %(link)s pro ověření vašeho mailu'
+auth.messages.reset_password = 'Klikněte na odkaz %(link)s pro reset vašeho hesla'
 ``:code
 
-In the two ``auth.messages`` above, you may need to replace the URL portion of the string with the proper complete URL of the action. This is necessary because web2py may be installed behind a proxy, and it cannot determine its own public URLs with absolute certainty. The above examples (which are the default values) should, however, work in most cases.
+Je možné, že v obou ``auth.messages`` budete ještě muset provést náhradu vloženého URL na správné znění URL. To je potřeba v případě, že je Web2py instalováno za proxy a nedokáže zcela jistě určit vlastní veřejnou adresu. Nicméně jednoduchá verze v právě uvedených příkladech (které jsou v anglickém znění defaultním nastavením) by měla téměř vždy fungovat.
 
 [[two_step_verification]]
-#### Two-step verification
+#### Dvoukrokové ověření
 
-Two-step verification (or Two-factor authentication) is a way of improving
-authentication security. The setting adds an extra step in the login process.
-In the first step, users are shown the standard username/password form. If they
-successfully pass this challenge by submitting the correct username and password,
-and two-factor authentication is enabled for the user, the server will present
-a second form before logging them in. This form will ask users for a six-digit code
-that has been emailed to their accounts (the server emails the code if the username
-and password was correct). The user gets four attempts to enter this code correctly.
-If the code is incorrect, the second verification step is treated as having failed
-and the user must complete the first challenge (username/password) again.
+Dvoukrokové ověření (two-step nebo two-factor autentikace) je způsob zvýšení bezpečnosti autentikace. Takové nastavení přidá další krok navíc do procesu přihlášení.
+V prvním kroku je uživateli nabídnut standardní formulář se jménem a heslem. Jestliže uživatel zadá údaje správně (a je vyžadováno dvoukrokové ověření), je před přihlášením promítnut další formulář,
+který se ptá na 6 číslic, odeslaných v emailu na emailovou adresu uživatele (server odešle email na základě toho, že jméno a heslo byly zadány správně). Uživatel má 4 pokusy na zadání kódu, pokud se mu to nepovede, musí opakovat celý postup.
 
-This functionality can be enabled on a per-user basis:
+Popsaná funkcionalita může také být nastavena jen pro některé uživatele:
 
-- Create a group (also known as a role) for the two-step verification. In this example it will be called ``auth2step`` and the description may be ``Two-step verification``.
-- Give a user membership of this role.
-- Add the following setting in the model where you created and configured your auth object (probably in the model db.py):
+- Vytvořte skupinu (group) pro dvoukrokové ověření, pojmenovanou např. ``auth2step`` a s popisem třeba ``Dvoukrokove overeni``.
+- Zařaďte uživatele do této skupiny.
+- Přidejte následující nastavení v modelu, který vytváří objekt auth (typicky v db.py):
 ``
 auth.settings.two_factor_authentication_group = "auth2step"
 ``:code
-- Don’t forget to configure the email server in db.py
+- Nezapomeňte konfigurovat nastavení emailového serveru v db.py.
 
 ### Authorization
 
