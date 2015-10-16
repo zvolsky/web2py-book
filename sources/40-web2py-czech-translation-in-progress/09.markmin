@@ -806,83 +806,87 @@ auth.settings.two_factor_authentication_group = "auth2step"
 ``:code
 - Nezapomeňte konfigurovat nastavení emailového serveru v db.py.
 
-### Authorization
+### Autorizace
 
-Once a new user is registered, a new group is created to contain the user. The role of the new user is conventionally "user_[id]" where [id] is the id of the newly created user. The creation of the group can be disabled with
+Při registraci nového uživatele se vytvoří skupina (group) s tímto uživatelem. Její jméno je "user_[id]", přičemž [id] je id nového uživatele. Vytváření těchto skupin můžete zabránit nastavením
 ``
 auth.settings.create_user_groups = None
 ``:code
 
-although we do not suggest doing so. Notice that ``create_user_groups`` is not a boolean (although it can be ``False``) but it defaults to:
+i když to nedoporučujeme. Poznamenejme, že ``create_user_groups`` není boolean (ačkoli může být nastaveno na ``False``), ale jeho default je:
 
 ``
 auth.settings.create_user_groups="user_%(id)s"
 ``:code
 
-It store a template for the name of the group created for user ``id``.
+Obsahuje tedy předlohu pro vytvoření jména skupiny na základě ``id`` uživatele.
 
-Users have membership in groups. Each group is identified by a name/role. Groups have permissions. Users have permissions because of the groups they belong to. By default each user is made member of their own group.
+Uživatelé jsou zařazeni (have membership) do skupin (groups). Každá skupina je identifikována pomocí údaje ``role`` (jména skupiny). Skupinám jsou přiřazena oprávnění (permissions). Uživatelé nabývají oprávnění tím, že jsou členové některé skupiny nebo některých skupin. Pokud nepotlačíte defaultní chování (jak jsme jej právě pospali), je každý uživatel zařazen alespoň do pro něj vytvořené skupiny.
 
-You can also do
+Můžete také provést nastavení např.
 ``
 auth.settings.everybody_group_id = 5
 ``:code
 
-to make any new user automatically member of group number 5. Here 5 is used as an example and we assume the group was created already.
-
-You can create groups, give membership and permissions via **appadmin**
-or programmatically using the following methods:
+a tím je každý nový uživatel také automaticky zařazen do skupiny s id 5. Předpokládá se, že skupina je už vytvořena. 5 je samozřejmě jen příklad, id skupiny zjistíte takto:
 ``
-auth.add_group('role', 'description')
+auth.id_group('role(jmeno)')
 ``:code
 
-returns the id of the newly created group.
+Skupiny můžete vytvářet pomocí **appadmin** rozhraní nebo programově těmito metodami:
+``
+auth.add_group('role(jmeno)', 'popis')
+``:code
+
+Metoda vrátí id právě vytvořené skupiny.
+Pozn. překladatele: pro pojmenování (role) nepoužívejte raději diakritiku.
 
 ``
 auth.del_group(group_id)
 ``:code
 
-deletes the group with ``group_id``.
+zruší skupinu s id ``group_id``.
 
 ``
 auth.del_group(auth.id_group('user_7'))
 ``:code
 
-deletes the group with role "user_7", i.e., the group uniquely associated to user number 7.
+zruší skupinu, pojmenovanou "user_7", čili skupinu unikátně vytvořenou pro uživatele id 7.
 
 ``
 auth.user_group(user_id)
 ``:code
 
-returns the id of the group uniquely associated to the user identified by ``user_id``.
+vrátí id skupiny unikátně vytvořené pro uživatele (se jménem ``user_id``) nebo None, pokud skupina neexistuje.
 
 ``
 auth.add_membership(group_id, user_id)
 ``:code
 
-gives ``user_id`` membership of the group ``group_id``.
-If the ``user_id`` is not specified, then web2py assumes the current logged-in user.
+zařadí uživatele ``user_id`` do skupiny ``group_id``.
+Pokud není zadáno ``user_id``, Web2py předpokládá právě přihlášeného uživatele.
 
 ``
 auth.del_membership(group_id, user_id)
 ``:code
 
-revokes ``user_id`` membership of the group ``group_id``.
-If the ``user_id`` is not specified, then web2py assumes the current logged-in user.
+zruší členstí uživatele ``user_id`` ve skupině ``group_id``.
+Opět, pokud není zadáno ``user_id``, Web2py předpokládá právě přihlášeného uživatele.
 
 ``
-auth.has_membership(group_id, user_id, role)
+auth.has_membership(group_id | role, user_id)
 ``:code
 
-checks whether ``user_id`` has membership of the group ``group_id`` or the group with the specified role. Only ``group_id`` or ``role`` should be passed to the function, not both. If the ``user_id`` is not specified, then web2py assumes the current logged-in user.
+zjistí, zda uživatel ``user_id`` je členem skupiny, skupinu zadáme prvním parametrem buď pomocí jejího ``group_id`` nebo jménem (role).
+Pokud není zadáno ``user_id``, Web2py předpokládá právě přihlášeného uživatele.
 
 ``
 auth.add_permission(group_id, 'name', 'object', record_id)
 ``:code
 
-gives permission "name" (user defined) on the object "object" (also user defined) to members of the group ``group_id``. If "object" is a tablename then the permission can refer to the entire table by setting ``record_id`` to a value of zero, or the permission can refer to a specific record by specifying a ``record_id`` value greater than zero. When giving permissions on tables, it is common to use a permission name in the set ('create', 'read', 'update', 'delete', 'select') since these permissions are understood and can be enforced by the CRUD APIs.
+dá skupině s id ``group_id`` (tedy jejím členům) oprávnění pojmenované "name" (libovolně volitelné) pro objekt "object" (také libovolně volitelné jméno). Jestliže "object" je jméno tabulky, oprávnění se bude vztahovat k celé tabulce, když uvedete jako ``record_id`` nulu, a nebo se oprávnění může vztahovat jen k jedinému záznamu (record), když zadáte odpovídající ``record_id`` (hodnotu větší než nula). Když dáváte oprávnění k tabulkám, je praktické používat jména oprávnění ("name") z množiny ('create', 'read', 'update', 'delete', 'select'), protože tato jména jsou známá pro CRUD rozhraní, které je může automaticky uplatňovat.
 
-If ``group_id`` is zero, web2py uses the group uniquely associated to the current logged-in user.
+Jestliže ``group_id`` je nula, Web2py použije skupinu, vytvořenou unikátně pro právě přihlášeného uživatele.
 
 You can also use ``auth.id_group(role="...")`` to get the id of a group given its name. ``id_group``:inxx
 
