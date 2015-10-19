@@ -888,31 +888,31 @@ dá skupině s id ``group_id`` (tedy jejím členům) oprávnění pojmenované 
 
 Jestliže ``group_id`` je nula, Web2py použije skupinu, vytvořenou unikátně pro právě přihlášeného uživatele.
 
-You can also use ``auth.id_group(role="...")`` to get the id of a group given its name. ``id_group``:inxx
+Jak jsme již uvedli, id skupiny zjistíte podle role (jména) takto: ``auth.id_group(role="...")`` ``id_group``:inxx
 
 ``
 auth.del_permission(group_id, 'name', 'object', record_id)
 ``:code
 
-revokes the permission.
+zruší oprávnění.
 
 ``
 auth.has_permission('name', 'object', record_id, user_id)
 ``:code
 
-checks whether the user identified by ``user_id`` has membership in a group with the requested permission.
+zjistí, zda uživatel ``user_id`` je členem některé skupiny se zadaným oprávněním.
 
 ``
 rows = db(auth.accessible_query('read', db.mytable, user_id))\
     .select(db.mytable.ALL)
 ``:code
 
-returns all rows of table "mytable" that user ``user_id`` has "read" permission on.
-If the ``user_id`` is not specified, then web2py assumes the current logged-in user.
-The ``accessible_query(...)`` can be combined with other queries to make more complex ones.
-``accessible_query(...)`` is the only **Auth** method to require a JOIN, so it does not work on the Google App Engine.
+vrátí všechny řádky tabulky "mytable", k nimž má uživatel ``user_id`` oprávnění "read".
+Pokud ``user_id`` neuvedete, předpokládá se právě přihlášený uživatel.
+Dotaz (query) ``accessible_query(...)`` lze kombinovat s jinými dotazy a vytvářet tak složitější.
+``accessible_query(...)`` je metoda, která vyžaduje JOIN, nepracuje proto na Google App Engine.
 
-Assuming the following definitions:
+Dejme tomu, že jsme zadali tyto definice:
 ``
 >>> from gluon.tools import Auth
 >>> auth = Auth(db)
@@ -922,7 +922,7 @@ Assuming the following definitions:
                                      last_name='Bond')
 ``:code
 
-Here is an example:
+Tady je příklad práce s uvedenými metodami:
 ``
 >>> doc_id = db.document.insert(body = 'top secret')
 >>> agents = auth.add_group(role = 'Secret Agent')
@@ -934,35 +934,35 @@ True
 False
 ``:code
 
-#### Decorators
+#### Decorátory
 
-The most common way to check permission is not by explicit calls to the above methods, but by decorating functions so that permissions are checked relative to the logged-in visitor. Here are some examples:
+Nejobvyklejší způspb, jak ověřit oprávnění, ale není pomocí uvedených metod, ale tak, že dekorujeme funkce a dekorátor ověří oprávnění vzhledem k právě přihlášenému uživateli. Zde jsou příklady:
 ``
 def function_one():
-    return 'this is a public function'
+    return 'veřejně přístupná funkce'
 
 @auth.requires_login()
 def function_two():
-    return 'this requires login'
+    return 'funkce, která vyžaduje přihlášení uživatele'
 
 @auth.requires_membership('agents')
 def function_three():
-    return 'you are a secret agent'
+    return 'jen pro člena skupiny agents'
 
 @auth.requires_permission('read', secrets)
 def function_four():
-    return 'you can read secret documents'
+    return 'máte oprávnění číst tajné dokumenty'
 
 @auth.requires_permission('delete', 'any file')
 def function_five():
     import os
     for file in os.listdir('./'):
         os.unlink(file)
-    return 'all files deleted'
+    return 'všechny soubory byly zrušeny'
 
 @auth.requires(auth.user_id==1 or request.client=='127.0.0.1', requires_login=True)
 def function_six():
-    return 'you can read secret documents'
+    return 'máte oprávnění číst tajné dokumenty'
 
 @auth.requires_permission('add', 'number')
 def add(a, b):
@@ -972,7 +972,7 @@ def function_seven():
     return add(3, 4)
 ``:code
 
-The condition argument of ``@auth.requires(condition)`` can be a callable and unless the condition is simple, it better to pass a callable than a condition since this will be faster, as the condition will only be evaluated if needed. For example
+Argument ``condition`` ve volání ``@auth.requires(condition)`` může být funkce (přesněji: callable) a kromě případu, kdy podmínka je jednoduchá, je to lepší s ohledem na rychlost. Podmínka se vyhodnocuje, když je to potřeba. Například:
 
 ``
 @auth.requires(lambda: check_condition())
@@ -980,20 +980,20 @@ def action():
     ....
 ``:code
 
-``@auth.requires`` also takes an optional argument ``requires_login`` which defaults to ``True``. If set to False, it does not require login before evaluating the condition as true/false. The condition can be a boolean value or a function evaluating to boolean.
+``@auth.requires`` má také volitelný argument ``requires_login`` s defaultem je ``True``. Nastavíte-li jej na False, není vyžadováno přihlášení (před vyhodnocením, zda je podmínka splněna). ``condition`` (podmínka), jak jsme uvedli, může být boolean hodnota nebo funkce, která se vyhodnotí na boolean (logickou hodnotu).
 
-Note that access to all functions apart from the first one is restricted based on permissions that the visitor may or may not have.
+Kromě první funkce z příkladů je přístup omezen v závisloti na oprávněních, která uživatel má.
 
-If the visitor is not logged in, then the permission cannot be checked; the visitor is redirected to the login page and then back to the page that requires permissions.
+Není-li uživatel přihlášen, nelze splnění oprávnění ověřit. Uživatel je proto přesměrován na stránku přihlášení a po úspěšném přihlášení vrácen zpět na stránku, která ověřuje oprávnění přístupu.
 
-#### Combining requirements
+#### Kombinování požadavků
 
-Occasionally, it is necessary to combine requirements. This can be done via a generic ``requires`` decorator which takes a single argument, a true or false condition. For example, to give access to agents, but only on Tuesday:
+Občas je třeba požadavky na oprávnění kombinovat složitějším způsobem. Lze to udělat pomocí zmíněného obecného dekorátoru ``requires``, který má jediný argument, podmínku, vyhodnocenou na True nebo False. Např. chceme dát přístup agentům, jenže jen v úterý:
 ``
-@auth.requires(auth.has_membership(group_id='agents' \
+@auth.requires(auth.has_membership(group_id=x \   # x je id skupiny Secret Agent
                and request.now.weekday()==1)
 def function_seven():
-    return 'Hello agent, it must be Tuesday!'
+    return 'Jj, v úterý to lze provést.'
 ``:code
 
 or equivalently:
@@ -1001,19 +1001,19 @@ or equivalently:
 @auth.requires(auth.has_membership(role='Secret Agent') \
                and request.now.weekday()==1)
 def function_seven():
-    return 'Hello agent, it must be Tuesday!'
+    return 'Jj, v úterý to lze provést.'
 ``:code
 
-#### Authorization and CRUD
+#### Autorizace a CRUD
 
-Using decorators and/or explicit checks provides one way to implement access control.
+Používání dekorátorů s explicitním zjištěním oprávnění je jeden způsob, jak implementovat kontrolu přístupu.
 
-Another way to implement access control is to always use CRUD (as opposed to ``SQLFORM``) to access the database and to ask CRUD to enforce access control on database tables and records. This is done by linking ``Auth`` and CRUD with the following statement:
+Jiná možnost je místo ``SQLFORM`` používat jednoduché volání pomocí CRUD. CRUD bude sám zajišťovat kontrolu oprávnění při přístupu k tabulkám a záznamům, jestliže jej propojíte s ``Auth`` tímto příkazem:
 ``
 crud.settings.auth = auth
 ``:code
 
-This will prevent the visitor from accessing any of the CRUD functions unless the visitor is logged in and has explicit access. For example, to allow a visitor to post comments, but only update their own comments (assuming crud, auth and db.comment are defined):
+To zabrání návštěvníkovi použít funkci CRUDu aniž by byl přihlášen. Musí také mít potřebné oprávnění. Například chceme uživateli dovolit vkládat komentáře a upravovat jen ty komentáře, které jsou jeho (crud, auth a db.comment musí pochopitelně být předem definovány):
 ``
 def give_create_permission(form):
     group_id = auth.id_group('user_%s' % auth.user.id)
@@ -1040,7 +1040,8 @@ def update_comment():
    return dict(form=form)
 ``:code
 
-You can also select specific records (those you have 'read' access to):
+Oprávnění aktualizovat vlastní komentář je dáno pomocí ``onaccept`` parametru.
+Můžete také vybrat záznamy, k nimž je dáno oprávnění 'read':
 ``
 def post_comment():
    form = crud.create(db.comment, onaccept=give_update_permission)
@@ -1049,23 +1050,24 @@ def post_comment():
    return dict(form=form, comments=comments)
 ``:code
 
-The permissions names enforced by :
+Jména oprávnění, kterým CRUD rozumí po přířazení:
 
 ``
 crud.settings.auth = auth
 ``:code
 
-are "read", "create", "update", "delete", "select", "impersonate".
+jsou "read", "create", "update", "delete", "select", "impersonate".
 
-#### Authorization and downloads
+#### Autorizace a download
 
-The use of decorators and the use of ``crud.settings.auth`` do not enforce authorization on files downloaded by the usual download function
+Použití dekorátorů nebo ``crud.settings.auth`` nevynucuje autorizaci stahování (downloadu) souborů pomocí obvyklé funkce pro download:
 ``
-def download(): return response.download(request, db)
+def download():
+    return response.download(request, db)
 ``:code
 
-If one wishes to do so, one must declare explicitly which "upload" fields contain files that need access control upon download.
-For example:
+Jestliže si přejeme autorizaci provádět, musíme explicitně deklarovat, která "upload" pole obsahují soubory, které dovolíme stahovat jen při existenci oprávnění.
+Například:
 ``
 db.define_table('dog',
    Field('small_image', 'upload'),
@@ -1076,20 +1078,20 @@ db.dog.large_image.authorize = lambda record: \
    auth.has_permission('read', db.dog, record.id, auth.user.id)
 ``:code
 
-The attribute ``authorize`` of upload field can be None (the default) or a function that decides whether the user is logged in and has permission to 'read' the current record. In this example, there is no restriction on downloading images linked by the "small_image" field, but we require access control on images linked by the "large_image" field.
+Atributem ``authorize`` upload pole může být None (což je default) nebo funkce. V našem příkladu ověří, že uživatel je přihlášen a má oprávnění 'read' k aktuálnímu záznamu. V našem příkladu není omezeno stahovat obrázky z pole "small_image", ale omezujeme stahování obrázků z pole "large_image" jen na oprávněné uživatele.
 
 
 [[basic_authentication]]
-#### Access Control and Basic Authentication
+#### Řízení přístupu a Basic autentikace (Basic Authentication)
 
-Occasionally, it may be necessary to expose actions that have decorators that require access control as services; i.e., to call them from a program or script and still be able to use authentication to check for authorization.
+Někdy může být potřeba zveřejnit akce s dekorátory pro ověření oprávnění jako služby (services), čili aby je bylo možné volat z programu nebo scriptu a i tak ověřovat oprávnění.
 
-**Auth** enables login via basic authentication:
+**Auth** umožňuje přihlášení pomocí Basic autentikace:
 ``
 auth.settings.allow_basic_login = True
 ``:code
 
-With this set, an action like
+Po takovém nastavení může být akce
 ``
 @auth.requires_login()
 def give_me_time():
@@ -1097,13 +1099,13 @@ def give_me_time():
     return time.ctime()
 ``:code
 
-can be called, for example, from a shell command:
+volána i např. ze shell příkazu (z příkazu interpreteru příkazů):
 ``
 wget --user=[username] --password=[password]
     http://.../[app]/[controller]/give_me_time
 ``:code
 
-It is also possible to log in by calling ``auth.basic()`` rather than using an ``@auth`` decorator:
+Je také možné provést přihlášení voláním ``auth.basic()`` místo jeho vynucení ``@auth`` dekorátorem:
 ``
 def give_me_time():
     import time
@@ -1114,11 +1116,11 @@ def give_me_time():
         return 'Not authorized'
 ``:code
 
-Basic login is often the only option for services (described in the next chapter), but it is disabled by default.
+Basic logina a autorizace je často jediným způsobem autorizace pro služby (services; o nichž budeme hovořit v další kapitole). Defaultně je, jak jsme právě vysvětlili, zakázána.
 
-#### Application Management via privileged users (Experimental)
-Normally administrator functions such as defining users and groups are managed by the server administrator. However, you may want a group of privileged users to have administrator rights for a specific application. 
-This is possible with versions after web2py v2.5.1 
+#### Management aplikace privilegovanými uživateli (experimentální)
+Normálně administrační funkce jako definování uživatelů a skupin spravuje administrátor serveru. Můžete ale určit skupinu privilegovaných uživatelů, která bude mít administrační práva k určité aplikaci. 
+To je podporováno od verze Web2py v2.5.1.
 (Upgrading an existing application requires the new appadmin controller and the new appadmin.html view, copied from the welcome app. Also, apps created prior to web2py v2.6 need the new javascript file in welcome/static/js/web2py.js)
 
 The concept allows different management settings, each of which allows a user group to edit a certain set of tables in this application.
